@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0d0d14"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="babyAI"/>
+<title>babyAI</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+<style>
+:root {
+  --bg:       #0d0d14;
+  --bg2:      #13131f;
+  --bg3:      #1a1a2e;
+  --card:     #16162a;
+  --border:   rgba(130,100,255,0.18);
+  --purple:   #8b5cf6;
+  --purple2:  #a78bfa;
+  --pink:     #ec4899;
+  --teal:     #2dd4bf;
+  --amber:    #fbbf24;
+  --text:     #f0eeff;
+  --muted:    #8b85b0;
+  --radius:   18px;
+  --font:     'Nunito', sans-serif;
+  --mono:     'Space Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  font-family: var(--font);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ── Layout ── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Background stars ── */
+.stars {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--dur, 3s) ease-in-out infinite;
+  animation-delay: var(--del, 0s);
+  opacity: 0;
+}
+@keyframes twinkle {
+  0%,100%{opacity:0} 50%{opacity:var(--op,0.6)}
+}
+
+/* ── Top bar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 10px;
+  position: relative;
+  z-index: 10;
+}
+.topbar-name {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--purple2), var(--pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.level-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  color: var(--purple2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.level-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--purple);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.5;transform:scale(0.8)}
+}
+
+/* ── Stats ── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 16px 10px;
+  z-index: 10;
+  position: relative;
+}
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 10px 8px;
+  text-align: center;
+}
+.stat-icon { font-size: 16px; margin-bottom: 3px; }
+.stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+.stat-bar-bg {
+  height: 5px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.stat-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+.stat-bar.happy  { background: linear-gradient(90deg, var(--pink), #f97316); }
+.stat-bar.energy { background: linear-gradient(90deg, var(--teal), #60a5fa); }
+.stat-bar.intel  { background: linear-gradient(90deg, var(--purple), var(--purple2)); }
+.stat-val { font-size: 12px; font-weight: 800; color: var(--text); }
+
+/* ── Pet area ── */
+.pet-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+  padding: 0 16px;
+  gap: 10px;
+}
+
+/* ── Speech bubble ── */
+.bubble-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  min-height: 54px;
+  align-items: center;
+}
+.bubble {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 300px;
+  text-align: center;
+  line-height: 1.5;
+  position: relative;
+  transition: opacity 0.2s;
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--border);
+}
+.bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--card);
+  z-index: 1;
+}
+
+/* ── Typing dots ── */
+.typing { display: flex; gap: 4px; align-items: center; justify-content: center; height: 20px; }
+.typing span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--purple2);
+  animation: typingBounce 1s infinite;
+}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* ── Pet SVG ── */
+.pet-container {
+  position: relative;
+  cursor: pointer;
+  animation: float 3s ease-in-out infinite;
+}
+.pet-container:active { transform: scale(0.95); }
+@keyframes float {
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+
+/* Glow ring around pet */
+.pet-glow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%,100%{opacity:0.5;transform:scale(0.9)}
+  50%{opacity:1;transform:scale(1.1)}
+}
+
+.pet-svg .blink {
+  animation: blink 5s infinite;
+  transform-origin: center;
+}
+@keyframes blink{0%,82%,100%{transform:scaleY(1)}86%,94%{transform:scaleY(0.06)}}
+#antenna-led { animation: antLed 2s ease-in-out infinite; }
+@keyframes antLed { 0%,100%{opacity:1} 50%{opacity:0.2} }
+#chest-bar { animation: chestBar 3s ease-in-out infinite; }
+@keyframes chestBar { 0%{width:20px} 50%{width:75px} 100%{width:20px} }
+
+/* happy bounce on tap */
+.pet-container.tapped {
+  animation: tapBounce 0.4s ease;
+}
+@keyframes tapBounce{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.15) rotate(-5deg)}
+  70%{transform:scale(0.95) rotate(3deg)}
+  100%{transform:scale(1) rotate(0)}
+}
+
+/* ── XP bar ── */
+.xp-wrap {
+  width: 100%;
+  max-width: 220px;
+}
+.xp-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.xp-bar-bg {
+  height: 4px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.xp-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--purple), var(--pink));
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ── Action buttons ── */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 4px 16px 8px;
+  z-index: 10;
+  position: relative;
+}
+.action-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 4px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.action-btn:active { transform: scale(0.93); background: var(--bg3); }
+.action-btn:hover  { border-color: rgba(139,92,246,0.4); }
+.action-icon { font-size: 22px; line-height: 1; }
+.action-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+
+/* ── Chat ── */
+.chat-area {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 10px 14px 14px;
+  z-index: 10;
+  position: relative;
+}
+.feedback-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  align-items: center;
+  min-height: 28px;
+  overflow: hidden;
+}
+.feedback-row.hidden { display: none; }
+.fb-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+.fb-btn {
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: transparent;
+  font-family: var(--font);
+}
+.fb-btn.good  { color: var(--teal);  border-color: rgba(45,212,191,0.3); }
+.fb-btn.good:hover  { background: rgba(45,212,191,0.1); }
+.fb-btn.bad   { color: var(--pink);  border-color: rgba(236,72,153,0.3); }
+.fb-btn.bad:hover   { background: rgba(236,72,153,0.1); }
+.fb-btn.skip  { color: var(--muted); }
+.fb-btn.skip:hover  { color: var(--text); }
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.chat-input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  outline: none;
+  font-family: var(--font);
+  transition: border-color 0.2s;
+}
+.chat-input::placeholder { color: var(--muted); font-weight: 400; }
+.chat-input:focus { border-color: rgba(139,92,246,0.5); }
+.send-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s, opacity 0.15s;
+}
+.send-btn:active { transform: scale(0.9); opacity: 0.8; }
+.send-btn svg { width: 18px; height: 18px; fill: white; }
+
+/* ── Memory panel ── */
+.panel-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s;
+}
+.panel-overlay.hidden { display: none; }
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 20px 32px;
+  animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+.panel-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+.panel-title {
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+.mem-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.mem-stat:last-of-type { border-bottom: none; }
+.mem-stat-label { color: var(--muted); font-weight: 600; }
+.mem-stat-val { font-weight: 800; color: var(--purple2); font-family: var(--mono); }
+
+.history-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
+.history-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.history-item-top { display: flex; justify-content: space-between; margin-bottom: 2px; }
+.hi-date { color: var(--muted); font-family: var(--mono); font-size: 10px; }
+.hi-nota { font-weight: 800; color: var(--amber); font-size: 11px; }
+.hi-tema { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hi-tipo-pos { color: var(--teal); font-size: 10px; }
+.hi-tipo-neg { color: var(--pink); font-size: 10px; }
+
+.close-panel {
+  width: 100%;
+  margin-top: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.close-panel:hover { color: var(--text); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  z-index: 100;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Offline badge ── */
+.offline-badge {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(251,191,36,0.15);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--amber);
+  z-index: 20;
+  display: none;
+}
+.offline-badge.show { display: block; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- Stars background -->
+<div class="stars" id="stars"></div>
+
+<!-- Offline badge -->
+<div class="offline-badge" id="offline-badge">Sin conexión al servidor</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Memory panel -->
+<div class="panel-overlay hidden" id="mem-panel" onclick="closeMem(event)">
+  <div class="panel">
+    <div class="panel-handle"></div>
+    <div class="panel-title">🧠 Memoria de babyAI</div>
+    <div id="mem-content">
+      <div class="mem-stat"><span class="mem-stat-label">Recuerdos vectoriales</span><span class="mem-stat-val" id="m-rv">—</span></div>
+      <div class="mem-stat"><span class="mem-stat-label">Sesiones totales</span><span class="mem-stat-val" id="m-ses">—</span></div>
+      <div class="mem-stat"><span class="mem-stat-label">Feedbacks positivos</span><span class="mem-stat-val" id="m-pos">—</span></div>
+      <div class="mem-stat"><span class="mem-stat-label">Feedbacks negativos</span><span class="mem-stat-val" id="m-neg">—</span></div>
+      <div class="history-list" id="m-hist"></div>
+    </div>
+    <button class="close-panel" onclick="closeMem()">Cerrar</button>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-name">babyAI</div>
+    <div class="level-chip">
+      <div class="level-dot"></div>
+      <span id="level-text">Nv. 1</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-icon">💜</div>
+      <div class="stat-label">Felicidad</div>
+      <div class="stat-bar-bg"><div class="stat-bar happy" id="bar-happy" style="width:70%"></div></div>
+      <div class="stat-val" id="val-happy">70%</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-label">Energía</div>
+      <div class="stat-bar-bg"><div class="stat-bar energy" id="bar-energy" style="width:60%"></div></div>
+      <div class="stat-val" id="val-energy">60%</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">🔮</div>
+      <div class="stat-label">Inteligencia</div>
+      <div class="stat-bar-bg"><div class="stat-bar intel" id="bar-intel" style="width:50%"></div></div>
+      <div class="stat-val" id="val-intel">50%</div>
+    </div>
+  </div>
+
+  <!-- Pet area -->
+  <div class="pet-area">
+    <div class="bubble-wrap">
+      <div class="bubble" id="bubble">¡Hola! Soy babyAI 👋<br>Habla conmigo o tócame</div>
+    </div>
+
+    <div class="pet-container" id="pet-container" onclick="petTap()">
+      <div class="pet-glow"></div>
+      <svg class="pet-svg" id="walle-svg" width="210" height="220" viewBox="0 0 210 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="eyeGlowL" cx="45%" cy="40%" r="55%">
+            <stop offset="0%" stop-color="#ffe066"/>
+            <stop offset="60%" stop-color="#f5a623"/>
+            <stop offset="100%" stop-color="#c47d00"/>
+          </radialGradient>
+          <radialGradient id="eyeGlowR" cx="45%" cy="40%" r="55%">
+            <stop offset="0%" stop-color="#ffe066"/>
+            <stop offset="60%" stop-color="#f5a623"/>
+            <stop offset="100%" stop-color="#c47d00"/>
+          </radialGradient>
+          <radialGradient id="bodyMetal" cx="35%" cy="30%" r="65%">
+            <stop offset="0%" stop-color="#4a4a5a"/>
+            <stop offset="100%" stop-color="#1e1e28"/>
+          </radialGradient>
+          <radialGradient id="headMetal" cx="35%" cy="25%" r="65%">
+            <stop offset="0%" stop-color="#5a5a6a"/>
+            <stop offset="100%" stop-color="#28282e"/>
+          </radialGradient>
+          <filter id="eyeBloom" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- Shadow -->
+        <ellipse cx="105" cy="213" rx="58" ry="7" fill="rgba(0,0,0,0.35)"/>
+
+        <!-- ── TREADS (base) ── -->
+        <rect x="18" y="158" width="54" height="38" rx="10" fill="#1a1a22" stroke="#3a3a4a" stroke-width="1"/>
+        <rect x="138" y="158" width="54" height="38" rx="10" fill="#1a1a22" stroke="#3a3a4a" stroke-width="1"/>
+        <!-- tread lines left -->
+        <line x1="28" y1="165" x2="62" y2="165" stroke="#2e2e3e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="25" y1="172" x2="65" y2="172" stroke="#2e2e3e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="25" y1="179" x2="65" y2="179" stroke="#2e2e3e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="25" y1="186" x2="65" y2="186" stroke="#2e2e3e" stroke-width="2" stroke-linecap="round"/>
+        <!-- tread lines right -->
+        <line x1="148" y1="165" x2="182" y2="165" stroke="#2e2e3e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="145" y1="172" x2="185" y2="172" stroke="#2e2e3e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="145" y1="179" x2="185" y2="179" stroke="#2e2e3e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="145" y1="186" x2="185" y2="186" stroke="#2e2e3e" stroke-width="2" stroke-linecap="round"/>
+        <!-- tread wheel hints -->
+        <circle cx="30" cy="177" r="8" fill="#111118" stroke="#333344" stroke-width="1"/>
+        <circle cx="60" cy="177" r="8" fill="#111118" stroke="#333344" stroke-width="1"/>
+        <circle cx="150" cy="177" r="8" fill="#111118" stroke="#333344" stroke-width="1"/>
+        <circle cx="180" cy="177" r="8" fill="#111118" stroke="#333344" stroke-width="1"/>
+
+        <!-- ── BODY (boxy cube like Wall-E) ── -->
+        <rect x="42" y="98" width="126" height="70" rx="8" fill="url(#bodyMetal)" stroke="#4a4a5a" stroke-width="1.2"/>
+        <!-- body panel lines -->
+        <line x1="42" y1="120" x2="168" y2="120" stroke="#3a3a4a" stroke-width="0.8"/>
+        <line x1="42" y1="142" x2="168" y2="142" stroke="#3a3a4a" stroke-width="0.8"/>
+        <line x1="105" y1="98" x2="105" y2="168" stroke="#3a3a4a" stroke-width="0.8"/>
+        <!-- solar panel accent -->
+        <rect x="50" y="104" width="22" height="12" rx="2" fill="#1a2a1a" stroke="#2a4a2a" stroke-width="0.8"/>
+        <line x1="61" y1="104" x2="61" y2="116" stroke="#2a4a2a" stroke-width="0.5"/>
+        <line x1="50" y1="110" x2="72" y2="110" stroke="#2a4a2a" stroke-width="0.5"/>
+        <!-- chest LED row -->
+        <circle cx="80" cy="128" r="3" fill="#f5a623" opacity="0.9"/>
+        <circle cx="90" cy="128" r="3" fill="#4ade80" opacity="0.9"/>
+        <circle cx="100" cy="128" r="3" fill="#60a5fa" opacity="0.9"/>
+        <circle cx="110" cy="128" r="3" fill="#f5a623" opacity="0.7"/>
+        <circle cx="120" cy="128" r="3" fill="#4ade80" opacity="0.6"/>
+        <!-- chest screen/belly -->
+        <rect x="56" y="148" width="98" height="14" rx="4" fill="#0d0d16" stroke="#3a3a4a" stroke-width="0.8"/>
+        <rect id="chest-bar" x="58" y="150" width="40" height="10" rx="3" fill="#8b5cf6" opacity="0.8"/>
+
+        <!-- ── NECK connector ── -->
+        <rect x="88" y="82" width="34" height="20" rx="4" fill="#2a2a36" stroke="#3a3a4a" stroke-width="1"/>
+        <line x1="96" y1="82" x2="96" y2="102" stroke="#1a1a24" stroke-width="1.5"/>
+        <line x1="114" y1="82" x2="114" y2="102" stroke="#1a1a24" stroke-width="1.5"/>
+
+        <!-- ── HEAD (boxy, Wall-E style) ── -->
+        <rect x="52" y="28" width="106" height="58" rx="10" fill="url(#headMetal)" stroke="#5a5a6a" stroke-width="1.2"/>
+        <!-- head panel -->
+        <line x1="52" y1="58" x2="158" y2="58" stroke="#404050" stroke-width="0.8"/>
+        <!-- rivets -->
+        <circle cx="60" cy="36" r="2" fill="#404050"/>
+        <circle cx="150" cy="36" r="2" fill="#404050"/>
+        <circle cx="60" cy="78" r="2" fill="#404050"/>
+        <circle cx="150" cy="78" r="2" fill="#404050"/>
+
+        <!-- ── EYES (big binocular-style, Wall-E signature) ── -->
+        <!-- eye stalks / housings -->
+        <rect x="58" y="30" width="38" height="34" rx="8" fill="#111118" stroke="#4a4a5a" stroke-width="1.2"/>
+        <rect x="114" y="30" width="38" height="34" rx="8" fill="#111118" stroke="#4a4a5a" stroke-width="1.2"/>
+        <!-- eye lenses -->
+        <g class="blink" style="transform-origin:77px 47px">
+          <circle cx="77" cy="47" r="13" fill="#1a1008" stroke="#5a4a00" stroke-width="1"/>
+          <circle cx="77" cy="47" r="10" fill="url(#eyeGlowL)" filter="url(#eyeBloom)"/>
+          <circle cx="77" cy="47" r="6" fill="#ffe066" opacity="0.95"/>
+          <circle cx="72" cy="43" r="2.5" fill="white" opacity="0.7"/>
+          <circle cx="81" cy="51" r="1.2" fill="white" opacity="0.35"/>
+        </g>
+        <g class="blink" style="transform-origin:133px 47px">
+          <circle cx="133" cy="47" r="13" fill="#1a1008" stroke="#5a4a00" stroke-width="1"/>
+          <circle cx="133" cy="47" r="10" fill="url(#eyeGlowR)" filter="url(#eyeBloom)"/>
+          <circle cx="133" cy="47" r="6" fill="#ffe066" opacity="0.95"/>
+          <circle cx="128" cy="43" r="2.5" fill="white" opacity="0.7"/>
+          <circle cx="137" cy="51" r="1.2" fill="white" opacity="0.35"/>
+        </g>
+        <!-- eye glow halos -->
+        <circle cx="77" cy="47" r="14" fill="none" stroke="#f5a623" stroke-width="0.8" opacity="0.4"/>
+        <circle cx="133" cy="47" r="14" fill="none" stroke="#f5a623" stroke-width="0.8" opacity="0.4"/>
+
+        <!-- ── ARMS (accordion / extendable) ── -->
+        <!-- left arm -->
+        <rect x="10" y="108" width="34" height="12" rx="5" fill="#2a2a36" stroke="#3a3a4a" stroke-width="1" transform="rotate(-10 10 108)"/>
+        <rect x="8" y="118" width="28" height="10" rx="4" fill="#222230" stroke="#3a3a4a" stroke-width="1" transform="rotate(-10 8 118)"/>
+        <!-- left claw -->
+        <path d="M6 126 Q2 122 4 118" stroke="#4a4a5a" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <path d="M6 126 Q0 125 2 120" stroke="#4a4a5a" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <!-- right arm -->
+        <rect x="166" y="108" width="34" height="12" rx="5" fill="#2a2a36" stroke="#3a3a4a" stroke-width="1" transform="rotate(10 166 108)"/>
+        <rect x="174" y="118" width="28" height="10" rx="4" fill="#222230" stroke="#3a3a4a" stroke-width="1" transform="rotate(10 174 118)"/>
+        <!-- right claw -->
+        <path d="M204 126 Q208 122 206 118" stroke="#4a4a5a" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <path d="M204 126 Q210 125 208 120" stroke="#4a4a5a" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+        <!-- ── ANTENNA ── -->
+        <line x1="105" y1="28" x2="105" y2="12" stroke="#5a5a6a" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="105" cy="9" r="4" fill="#2a2a36" stroke="#5a5a6a" stroke-width="1"/>
+        <circle id="antenna-led" cx="105" cy="9" r="2" fill="#f5a623"/>
+      </svg>
+    </div>
+
+    <div class="xp-wrap">
+      <div class="xp-label">
+        <span>XP</span>
+        <span id="xp-text">0 / 100</span>
+      </div>
+      <div class="xp-bar-bg"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <div class="action-btn" onclick="doAction('feed')">
+      <span class="action-icon">🍬</span>
+      <span class="action-label">Alimentar</span>
+    </div>
+    <div class="action-btn" onclick="doAction('play')">
+      <span class="action-icon">🎮</span>
+      <span class="action-label">Jugar</span>
+    </div>
+    <div class="action-btn" onclick="doAction('train')">
+      <span class="action-icon">🧠</span>
+      <span class="action-label">Entrenar</span>
+    </div>
+    <div class="action-btn" onclick="openMem()">
+      <span class="action-icon">💾</span>
+      <span class="action-label">Memoria</span>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-area">
+    <div class="feedback-row hidden" id="feedback-row">
+      <span class="fb-label">¿Cómo fue?</span>
+      <button class="fb-btn good" onclick="sendFeedback('positivo')">👍 Bien</button>
+      <button class="fb-btn bad"  onclick="sendFeedback('negativo')">👎 Mal</button>
+      <button class="fb-btn skip" onclick="hideFeedback()">Saltar</button>
+    </div>
+    <div class="input-row">
+      <input class="chat-input" id="chat-input"
+        placeholder="Habla con babyAI..."
+        onkeydown="handleKey(event)"
+        autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button class="send-btn" onclick="sendMsg()">
+        <svg viewBox="0 0 20 20"><path d="M2 10L18 3l-5 14-3-6-8-1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = "http://localhost:8000";
+let stats = { felicidad: 70, energia: 60, inteligencia: 50, nivel: 1, xp: 0 };
+let historial = [];
+let lastQ = "", lastR = "";
+let isTyping = false;
+let idleTimer;
+
+// ── Stars ──────────────────────────────────────────────────
+(function createStars() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 1;
+    s.style.cssText = `
+      width:${size}px;height:${size}px;
+      top:${Math.random()*100}%;left:${Math.random()*100}%;
+      --dur:${2+Math.random()*4}s;
+      --del:${Math.random()*4}s;
+      --op:${0.3+Math.random()*0.5};
+    `;
+    container.appendChild(s);
+  }
+})();
+
+// ── API helpers ────────────────────────────────────────────
+async function apiGet(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+async function apiPost(path, body) {
+  const r = await fetch(API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+// ── Load state ─────────────────────────────────────────────
+async function loadState() {
+  try {
+    const data = await apiGet('/estado');
+    stats = data.stats;
+    updateUI();
+    document.getElementById('offline-badge').classList.remove('show');
+  } catch {
+    document.getElementById('offline-badge').classList.add('show');
+    // Use local defaults, still playable
+  }
+}
+
+// ── Update UI ──────────────────────────────────────────────
+function updateUI() {
+  document.getElementById('bar-happy').style.width = stats.felicidad + '%';
+  document.getElementById('val-happy').textContent = Math.round(stats.felicidad) + '%';
+  document.getElementById('bar-energy').style.width = stats.energia + '%';
+  document.getElementById('val-energy').textContent = Math.round(stats.energia) + '%';
+  document.getElementById('bar-intel').style.width = stats.inteligencia + '%';
+  document.getElementById('val-intel').textContent = Math.round(stats.inteligencia) + '%';
+  document.getElementById('level-text').textContent = 'Nv. ' + (stats.nivel || 1);
+
+  const xp = stats.xp || 0;
+  const xpNext = (stats.nivel || 1) * 100;
+  const xpPct = Math.min(100, Math.round((xp % xpNext) / xpNext * 100));
+  document.getElementById('xp-bar').style.width = xpPct + '%';
+  document.getElementById('xp-text').textContent = (xp % xpNext) + ' / ' + xpNext;
+}
+
+// ── Bubble ─────────────────────────────────────────────────
+function setBubble(html, isTypingAnim = false) {
+  const b = document.getElementById('bubble');
+  if (isTypingAnim) {
+    b.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  } else {
+    b.innerHTML = html;
+  }
+}
+
+// ── Pet tap ────────────────────────────────────────────────
+const tapPhrases = ["¡Eh, cosquillas! 🤖", "¡Hola! 👋", "¿Qué necesitas?", "¡Waaaall-eeee!", "¡Estoy aquí!"];
+function petTap() {
+  const pet = document.getElementById('pet-container');
+  pet.classList.remove('tapped');
+  void pet.offsetWidth;
+  pet.classList.add('tapped');
+  setTimeout(() => pet.classList.remove('tapped'), 400);
+  // Make eyes glow brighter on tap
+  const svg = document.getElementById('walle-svg');
+  svg.style.filter = 'brightness(1.4)';
+  setTimeout(() => svg.style.filter = '', 500);
+  setBubble(tapPhrases[Math.floor(Math.random() * tapPhrases.length)]);
+  stats.felicidad = Math.min(100, stats.felicidad + 2);
+  updateUI();
+  resetIdleTimer();
+}
+
+// ── Actions ────────────────────────────────────────────────
+async function doAction(action) {
+  try {
+    const data = await apiPost('/accion/' + action, {});
+    setBubble(data.mensaje);
+    stats = data.stats;
+    updateUI();
+    toast('✓ ' + (action === 'feed' ? 'Alimentado' : action === 'play' ? '¡A jugar!' : 'Entrenando...'));
+  } catch {
+    // Offline fallback
+    const msgs = {
+      feed: ['¡Mmm, datos deliciosos! ⚡', '¡Gracias! Tengo más energía'],
+      play: ['¡Sí! ¡A jugar! 🎮', '¡Me encanta aprender jugando!'],
+      train: ['Procesando patrones... 🧠', '¡Mi mente crece!']
+    };
+    const list = msgs[action] || ['¡Acción realizada!'];
+    setBubble(list[Math.floor(Math.random() * list.length)]);
+    if (action === 'feed')  { stats.energia = Math.min(100, stats.energia + 12); stats.felicidad = Math.min(100, stats.felicidad + 4); }
+    if (action === 'play')  { stats.felicidad = Math.min(100, stats.felicidad + 15); stats.energia = Math.max(0, stats.energia - 8); }
+    if (action === 'train') { stats.inteligencia = Math.min(100, stats.inteligencia + 8); stats.energia = Math.max(0, stats.energia - 10); }
+    updateUI();
+  }
+  resetIdleTimer();
+}
+
+// ── Chat ───────────────────────────────────────────────────
+function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
+
+async function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg || isTyping) return;
+  input.value = '';
+  isTyping = true;
+  lastQ = msg;
+  hideFeedback();
+  setBubble('', true);
+
+  try {
+    const data = await apiPost('/chat', { pregunta: msg, historial });
+    lastR = data.respuesta;
+    setBubble(data.respuesta.replace(/\n/g, '<br>'));
+    stats = data.stats;
+    updateUI();
+    historial.push({ role: 'user', content: msg });
+    historial.push({ role: 'assistant', content: data.respuesta });
+    if (historial.length > 20) historial = historial.slice(-20);
+    showFeedback();
+  } catch {
+    setBubble('No encuentro el servidor local 😔<br><small>Asegúrate de que el backend está corriendo</small>');
+  }
+  isTyping = false;
+  resetIdleTimer();
+}
+
+// ── Feedback ───────────────────────────────────────────────
+function showFeedback() {
+  document.getElementById('feedback-row').classList.remove('hidden');
+}
+function hideFeedback() {
+  document.getElementById('feedback-row').classList.add('hidden');
+}
+async function sendFeedback(tipo) {
+  hideFeedback();
+  try {
+    await apiPost('/feedback', { pregunta: lastQ, respuesta: lastR, tipo, comentario: tipo });
+    if (tipo === 'positivo') { stats.felicidad = Math.min(100, stats.felicidad + 8); toast('💜 ¡Genial! Aprendo de ti'); }
+    else { stats.felicidad = Math.max(0, stats.felicidad - 3); toast('📝 Anotado, lo mejoraré'); }
+    updateUI();
+  } catch { /* offline, no pasa nada */ }
+}
+
+// ── Memory panel ───────────────────────────────────────────
+async function openMem() {
+  document.getElementById('mem-panel').classList.remove('hidden');
+  try {
+    const data = await apiGet('/memoria');
+    document.getElementById('m-rv').textContent = data.recuerdos_vectoriales;
+    document.getElementById('m-ses').textContent = data.sesiones;
+    document.getElementById('m-pos').textContent = data.feedbacks_positivos;
+    document.getElementById('m-neg').textContent = data.feedbacks_negativos;
+    const hist = document.getElementById('m-hist');
+    hist.innerHTML = '';
+    (data.historial || []).reverse().forEach(ep => {
+      const d = document.createElement('div');
+      d.className = 'history-item';
+      const tipoClass = ep.feedback_tipo === 'positivo' ? 'hi-tipo-pos' : 'hi-tipo-neg';
+      const tipoIcon = ep.feedback_tipo === 'positivo' ? '✓' : ep.feedback_tipo === 'negativo' ? '✗' : '·';
+      d.innerHTML = `
+        <div class="history-item-top">
+          <span class="hi-date">${ep.fecha}</span>
+          <span class="hi-nota">${ep.nota_final}/10</span>
+        </div>
+        <div class="hi-tema">${ep.tema}</div>
+        <span class="${tipoClass}">${tipoIcon} ${ep.feedback_tipo || 'neutro'}</span>`;
+      hist.appendChild(d);
+    });
+  } catch {
+    document.getElementById('m-rv').textContent = 'sin conexión';
+  }
+}
+function closeMem(e) {
+  if (!e || e.target === document.getElementById('mem-panel')) {
+    document.getElementById('mem-panel').classList.add('hidden');
+  }
+}
+
+// ── Toast ──────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Idle phrases ───────────────────────────────────────────
+const idlePhrases = [
+  "Waaaall-eeee... 🤖",
+  "Procesando recuerdos...",
+  "¿Me hablas? Estoy aquí",
+  "Directiva: aprender contigo",
+  "Mis ojos ven todo 👁️",
+  "Calculando respuesta óptima...",
+];
+function resetIdleTimer() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    setBubble(idlePhrases[Math.floor(Math.random() * idlePhrases.length)]);
+    idleTimer = setTimeout(resetIdleTimer, 12000);
+  }, 10000);
+}
+
+// ── Passive stat decay (like Pou) ─────────────────────────
+setInterval(() => {
+  stats.energia   = Math.max(0, stats.energia - 0.5);
+  stats.felicidad = Math.max(0, stats.felicidad - 0.2);
+  updateUI();
+}, 60000); // cada minuto
+
+// ── Service Worker ─────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// ── Init ───────────────────────────────────────────────────
+loadState();
+resetIdleTimer();
+</script>
+</body>
+</html>

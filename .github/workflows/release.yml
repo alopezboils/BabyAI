@@ -1,0 +1,93 @@
+name: Build & Release babyAI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller fastapi uvicorn chromadb sentence-transformers ollama pydantic anyio starlette
+
+      - name: Build exe
+        run: pyinstaller babyAI.spec
+
+      - name: Zip release
+        run: |
+          cd dist
+          Compress-Archive -Path babyAI -DestinationPath babyAI-Windows.zip
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/babyAI-Windows.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller fastapi uvicorn chromadb sentence-transformers ollama pydantic anyio starlette
+
+      - name: Build app
+        run: pyinstaller babyAI.spec
+
+      - name: Zip release
+        run: |
+          cd dist
+          zip -r babyAI-macOS.zip babyAI
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/babyAI-macOS.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller fastapi uvicorn chromadb sentence-transformers ollama pydantic anyio starlette
+
+      - name: Build binary
+        run: pyinstaller babyAI.spec
+
+      - name: Zip release
+        run: |
+          cd dist
+          zip -r babyAI-Linux.zip babyAI
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/babyAI-Linux.zip
+
+          

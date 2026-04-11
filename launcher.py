@@ -28,7 +28,7 @@ def start_frontend_server():
     os.chdir(FRONTEND)
     handler = http.server.SimpleHTTPRequestHandler
     handler.log_message = lambda *a: None  # silenciar logs
-    with socketserver.TCPServer(("", 3000), handler) as httpd:
+    with socketserver.TCPServer(("0.0.0.0", 3000), handler) as httpd:
         httpd.serve_forever()
 
 def start_backend_server():
